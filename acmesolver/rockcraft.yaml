@@ -1,7 +1,7 @@
 name: cert-manager-acmesolver
 summary: ROCK for the cert-manager-acmesolver Project.
 description: |
-  This ROCK is a drop in replacement for the autoscaling/cert-manager-acmesolver image.
+  This ROCK is a drop-in replacement for the autoscaling/cert-manager-acmesolver image.
 version: "1.12.2"
 license: Apache-2.0
 

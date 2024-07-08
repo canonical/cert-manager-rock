@@ -1,7 +1,7 @@
 name: cert-manager-webhook
 summary: ROCK for the cert-manager project.
 description: | 
-  This ROCK is a drop in replacement for the autoscaling/cert-manager-webhook image.
+  This ROCK is a drop-in replacement for the autoscaling/cert-manager-webhook image.
 version: "1.12.2"
 license: Apache-2.0
 
