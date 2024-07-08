@@ -1,6 +1,7 @@
 name: cert-manager-acmesolver
 summary: ROCK for the cert-manager-acmesolver Project.
-description: This ROCK is a drop in replacement for the autoscaling/cert-manager-acmesolver image.
+description: |
+  This ROCK is a drop in replacement for the autoscaling/cert-manager-acmesolver image.
 version: "1.12.2"
 license: Apache-2.0
 
@@ -16,7 +17,7 @@ services:
     override: replace
     summary: "cert-manager-acmesolver service"
     startup: enabled
-    command: "/acmesolver-linux [ ]"
+    command: "/acmesolver-linux [ -h ]"
     on-failure: shutdown
 
 parts:
@@ -27,10 +28,11 @@ parts:
     source-tag: v1.12.2
     source-depth: 1
     build-snaps:
-      - docker
       - jq
       - go/1.22/stable
     override-build: |
-      make _bin/server/acmesolver-linux-${CRAFT_PLATFORM}
-      cp _bin/server/acmesolver-linux-${CRAFT_PLATFORM} ${CRAFT_PRIME}/acmesolver-linux
-
+      # CTR=echo is hacky way of passing docker check not required for build
+      make CTR=echo _bin/server/acmesolver-linux-${CRAFT_PLATFORM}
+      cp _bin/server/acmesolver-linux-${CRAFT_PLATFORM} ${CRAFT_PART_INSTALL}/acmesolver-linux
+    prime:
+      - acmesolver-linux
