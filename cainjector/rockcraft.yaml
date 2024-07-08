@@ -1,0 +1,36 @@
+name: cert-manager-cainjector
+summary: ROCK for the cert-manager-cainjector Project.
+description: This ROCK is a drop in replacement for the autoscaling/cert-manager-cainjector image.
+version: "1.12.2"
+license: Apache-2.0
+
+base: bare
+build-base: ubuntu@22.04
+platforms:
+  amd64:
+  arm64:
+
+entrypoint-service: cert-manager-cainjector
+services:
+  cert-manager-cainjector:
+    override: replace
+    summary: "cert-manager-cainjector service"
+    startup: enabled
+    command: "/cainjector-linux [ ]"
+    on-failure: shutdown
+
+parts:
+  cert-manager-cainjector:
+    plugin: nil
+    source: https://github.com/cert-manager/cert-manager.git
+    source-type: git
+    source-tag: v1.12.2
+    source-depth: 1
+    build-snaps:
+      - docker
+      - jq
+      - go/1.22/stable
+    override-build: |
+      make _bin/server/cainjector-linux-${CRAFT_PLATFORM}
+      cp _bin/server/cainjector-linux-${CRAFT_PLATFORM} ${CRAFT_PRIME}/cainjector-linux
+
