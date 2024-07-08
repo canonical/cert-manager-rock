@@ -2,7 +2,9 @@ import random
 import pytest
 import string
 import subprocess
+import os
 
+from parameterized import parameterized
 from charmed_kubeflow_chisme.rock import CheckRock
 
 
@@ -20,13 +22,18 @@ def rock_test_env(tmpdir):
         pass
     # tmpdir fixture we use here should clean up the other files for us
 
-def test_rock(rock_test_env):
-    """Test rock."""
-    temp_dir, container_name = rock_test_env
-    check_rock = CheckRock("rockcraft.yaml")
-    rock_image = check_rock.get_name()
+
+@parameterized.expand([
+    ("acmesolver", "HTTP server used to solve ACME challenges."),
+    ("webhook", "Webhook component providing API validation"),
+    ("controller", "cert-manager is a Kubernetes addon to automate the management and issuance"),
+    ("cainjector", "cert-manager CA injector is a Kubernetes addon to automate the injection of CA data into"),
+])
+def test_rock_smoke(rock_name, expected_stout_substring):
+    check_rock = CheckRock(os.path.join(rock_name, "rockcraft.yaml"))
+    # rock_image = check_rock.get_name()
     rock_version = check_rock.get_version()
-    LOCAL_ROCK_IMAGE = f"{rock_image}:{rock_version}"
+    local_rock_image = f"cert-manager-{rock_name}:{rock_version}"
     # assert we have the expected files
     docker_run = subprocess.run(
         [
@@ -34,10 +41,12 @@ def test_rock(rock_test_env):
             "run",
             "--rm",
             "--entrypoint",
-            "/cainjector-linux",
-            LOCAL_ROCK_IMAGE,
+            f"/{rock_name}-linux",
+            local_rock_image,
+            "--help"
         ],
         capture_output=True,
+        check=True,
+        text=True
     )
-    assert "config.go" in docker_run.stderr.decode("utf-8")
-    
+    assert expected_stout_substring in docker_run.stdout

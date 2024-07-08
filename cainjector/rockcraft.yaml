@@ -1,6 +1,7 @@
 name: cert-manager-cainjector
 summary: ROCK for the cert-manager-cainjector Project.
-description: This ROCK is a drop in replacement for the autoscaling/cert-manager-cainjector image.
+description: | 
+  This ROCK is a drop in replacement for the autoscaling/cert-manager-cainjector image.
 version: "1.12.2"
 license: Apache-2.0
 
@@ -16,7 +17,7 @@ services:
     override: replace
     summary: "cert-manager-cainjector service"
     startup: enabled
-    command: "/cainjector-linux [ ]"
+    command: "/cainjector-linux [ -h ]"
     on-failure: shutdown
 
 parts:
@@ -27,10 +28,11 @@ parts:
     source-tag: v1.12.2
     source-depth: 1
     build-snaps:
-      - docker
       - jq
       - go/1.22/stable
     override-build: |
-      make _bin/server/cainjector-linux-${CRAFT_PLATFORM}
-      cp _bin/server/cainjector-linux-${CRAFT_PLATFORM} ${CRAFT_PRIME}/cainjector-linux
-
+      # CTR=echo is hacky way of passing docker check not required for build
+      make CTR=echo _bin/server/cainjector-linux-${CRAFT_PLATFORM}
+      cp _bin/server/cainjector-linux-${CRAFT_PLATFORM} ${CRAFT_PART_INSTALL}/cainjector-linux
+    prime:
+      - cainjector-linux
