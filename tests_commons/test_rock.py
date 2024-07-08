@@ -4,7 +4,6 @@ import string
 import subprocess
 import os
 
-from parameterized import parameterized
 from charmed_kubeflow_chisme.rock import CheckRock
 
 
@@ -23,12 +22,13 @@ def rock_test_env(tmpdir):
     # tmpdir fixture we use here should clean up the other files for us
 
 
-@parameterized.expand([
+@pytest.mark.parametrize("rock_name, expected_stout_substring",[
     ("acmesolver", "HTTP server used to solve ACME challenges."),
     ("webhook", "Webhook component providing API validation"),
     ("controller", "cert-manager is a Kubernetes addon to automate the management and issuance"),
     ("cainjector", "cert-manager CA injector is a Kubernetes addon to automate the injection of CA data into"),
-])
+], ids=["cert-manager-acmesolver", "cert-manager-webhook", "cert-manager-controller", "cert-manager-cainjector"]
+)
 def test_rock_smoke(rock_name, expected_stout_substring):
     check_rock = CheckRock(os.path.join(rock_name, "rockcraft.yaml"))
     rock_version = check_rock.get_version()
