@@ -1,7 +1,7 @@
 name: cert-manager-controller
 summary: ROCK for the cert-manager-controller Project.
 description: |
-  This ROCK is a drop in replacement for the autoscaling/cert-manager-controller image.
+  This ROCK is a drop-in replacement for the autoscaling/cert-manager-controller image.
 version: "1.12.2"
 license: Apache-2.0
 

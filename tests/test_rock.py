@@ -31,7 +31,6 @@ def rock_test_env(tmpdir):
 ])
 def test_rock_smoke(rock_name, expected_stout_substring):
     check_rock = CheckRock(os.path.join(rock_name, "rockcraft.yaml"))
-    # rock_image = check_rock.get_name()
     rock_version = check_rock.get_version()
     local_rock_image = f"cert-manager-{rock_name}:{rock_version}"
     # assert we have the expected files
