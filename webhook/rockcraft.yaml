@@ -35,4 +35,4 @@ parts:
       make CTR=echo _bin/server/webhook-linux-${CRAFT_PLATFORM}
       cp _bin/server/webhook-linux-${CRAFT_PLATFORM} ${CRAFT_PART_INSTALL}/webhook-linux
     prime:
-      - controller-linux
+      - webhook-linux
