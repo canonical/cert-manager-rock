@@ -9,7 +9,6 @@ base: bare
 build-base: ubuntu@22.04
 platforms:
   amd64:
-  arm64:
 
 entrypoint-service: cert-manager-acmesolver
 services:

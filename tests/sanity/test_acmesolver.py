@@ -3,8 +3,8 @@ import os
 
 
 def test_sanity_acmesolver():
-    image = os.getenv("ROCK_CERT-MANAGER-ACMESOLVER")
-    assert image is not None, "ROCK_CERT-MANAGER-ACMESOLVER is not set"
+    image = os.getenv("ROCK_CERT_MANAGER_ACMESOLVER")
+    assert image is not None, "ROCK_CERT_MANAGER_ACMESOLVER is not set"
     docker_run = subprocess.run(
         ["docker", "run", "--rm", "--entrypoint", "/acmesolver-linux", image, "--help"],
         capture_output=True,

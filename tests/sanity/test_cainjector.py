@@ -3,8 +3,8 @@ import os
 
 
 def test_sanity_cainjector():
-    image = os.getenv("ROCK_CERT-MANAGER-CAINJECTOR")
-    assert image is not None, "ROCK_CERT-MANAGER-CAINJECTOR is not set"
+    image = os.getenv("ROCK_CERT_MANAGER_CAINJECTOR")
+    assert image is not None, "ROCK_CERT_MANAGER_CAINJECTOR is not set"
     docker_run = subprocess.run(
         ["docker", "run", "--rm", "--entrypoint", "/cainjector-linux", image, "--help"],
         capture_output=True,
