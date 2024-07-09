@@ -10,6 +10,7 @@ build-base: ubuntu@22.04
 platforms:
   amd64:
 
+run-user: _daemon_
 entrypoint-service: cert-manager-cainjector
 services:
   cert-manager-cainjector:
