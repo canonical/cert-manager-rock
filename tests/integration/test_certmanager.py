@@ -1,89 +1,64 @@
 #
 # Copyright 2024 Canonical, Ltd.
+# See LICENSE file for licensing details
 #
-import logging
+
 from pathlib import Path
-import os
 
-from test_util import harness, util
-from test_util.config import MANIFESTS_DIR
+import pytest
+from k8s_test_harness import harness
+from k8s_test_harness.util import constants, env_util, exec_util, k8s_util
+from k8s_test_harness.util.k8s_util import HelmImage
 
-LOG = logging.getLogger(__name__)
+IMG_PLATFORM = "amd64"
+INSTALL_NAME = "cert-manager"
+
+DIR = Path(__file__).absolute().parent
+MANIFESTS_DIR = DIR / ".." / "templates"
 
 
-def test_integration_certmanager(session_instance: harness.Instance):
+def _get_rock_image(name: str, version: str):
+    rock = env_util.get_build_meta_info_for_rock_version(
+        f"cert-manager-{name}", version, IMG_PLATFORM
+    )
+    return rock.image
+
+
+@pytest.mark.parametrize("version", ("1.10.1", "1.12.2"))
+def test_certmanager(function_instance: harness.Instance, version: str):
     images = [
-        {"variable": "ROCK_CERT_MANAGER_CONTROLLER", "prefix": None},
-        {"variable": "ROCK_CERT_MANAGER_WEBHOOK", "prefix": "webhook"},
-        {"variable": "ROCK_CERT_MANAGER_CAINJECTOR", "prefix": "cainjector"},
-        {"variable": "ROCK_CERT_MANAGER_ACMESOLVER", "prefix": "acmesolver"},
+        HelmImage(uri=_get_rock_image("controller", version)),
+        HelmImage(uri=_get_rock_image("webhook", version), prefix="webhook"),
+        HelmImage(uri=_get_rock_image("cainjector", version), prefix="cainjector"),
+        HelmImage(uri=_get_rock_image("acmesolver", version), prefix="acmesolver"),
     ]
 
-    helm_command = [
-        "k8s",
-        "helm",
-        "install",
-        "cert-manager",
-        "--repo",
-        "https://charts.jetstack.io",
-        "cert-manager",
-        "--namespace",
-        "cert-manager",
-        "--create-namespace",
-        "--version",
-        "v1.12.2",
-        "--set",
-        "installCRDs=true",
-    ]
-
-    for image in images:
-        image_uri = os.getenv(image["variable"])
-        assert image_uri is not None, f"{image['variable']} is not set"
-        image_split = image_uri.split(":")
-
-        if image["prefix"]:
-            helm_command += [
-                "--set",
-                f"{image['prefix']}.image.repository={image_split[0]}",
-                "--set",
-                f"{image['prefix']}.image.tag={image_split[1]}",
-                "--set",
-                f"{image['prefix']}.securityContext.runAsUser=584792",
-            ]
-        else:
-            helm_command += [
-                "--set",
-                f"image.repository={image_split[0]}",
-                "--set",
-                f"image.tag={image_split[1]}",
-                "--set",
-                "securityContext.runAsUser=584792",
-            ]
-
-    session_instance.exec(helm_command)
+    helm_command = k8s_util.get_helm_install_command(
+        name=INSTALL_NAME,
+        chart_name="cert-manager",
+        images=images,
+        namespace=constants.K8S_NS_KUBE_SYSTEM,
+        chart_version=version,
+        repository="https://charts.jetstack.io",
+    )
+    helm_command += ["--set", "installCRDs=true"]
+    function_instance.exec(helm_command)
 
     manifest = MANIFESTS_DIR / "cert-manager-test.yaml"
-    session_instance.exec(
+    function_instance.exec(
         ["k8s", "kubectl", "apply", "-f", "-"],
         input=Path(manifest).read_bytes(),
     )
 
-    util.stubbornly(retries=3, delay_s=1).on(session_instance).exec(
-        [
-            "k8s",
-            "kubectl",
-            "wait",
-            "--for=condition=ready",
-            "certificate",
-            "selfsigned-cert",
-            "--namespace",
-            "cert-manager-test",
-            "--timeout",
-            "180s",
-        ]
+    k8s_util.wait_for_resource(
+        function_instance,
+        resource_type="certificate",
+        name="selfsigned-cert",
+        namespace="cert-manager-test",
+        condition=constants.K8S_CONDITION_READY,
     )
 
-    util.stubbornly(retries=5, delay_s=10).on(session_instance).until(
+    exec_util.stubbornly(retries=5, delay_s=10).on(function_instance).until(
         lambda p: "selfsigned-cert-tls" in p.stdout.decode()
     ).exec(
         [

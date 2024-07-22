@@ -1,8 +1,8 @@
 name: cert-manager-cainjector
 summary: ROCK for the cert-manager-cainjector Project.
-description: | 
+description: |
   This ROCK is a drop-in replacement for the autoscaling/cert-manager-cainjector image.
-version: "1.12.2"
+version: 1.10.1
 license: Apache-2.0
 
 base: bare
@@ -26,7 +26,7 @@ parts:
     plugin: nil
     source: https://github.com/cert-manager/cert-manager.git
     source-type: git
-    source-tag: v1.12.2
+    source-tag: v1.10.1
     source-depth: 1
     build-snaps:
       - jq

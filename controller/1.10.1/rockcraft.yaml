@@ -1,0 +1,39 @@
+name: cert-manager-controller
+summary: ROCK for the cert-manager-controller Project.
+description: |
+  This ROCK is a drop-in replacement for the autoscaling/cert-manager-controller image.
+version: 1.10.1
+license: Apache-2.0
+
+base: bare
+build-base: ubuntu@22.04
+platforms:
+  amd64:
+  arm64:
+
+run-user: _daemon_
+entrypoint-service: cert-manager-controller
+services:
+  cert-manager-controller:
+    override: replace
+    summary: "cert-manager-controller service"
+    startup: enabled
+    command: "/controller-linux [ -h ]"
+    on-failure: shutdown
+
+parts:
+  cert-manager-controller:
+    plugin: nil
+    source: https://github.com/cert-manager/cert-manager.git
+    source-type: git
+    source-tag: v1.10.1
+    source-depth: 1
+    build-snaps:
+      - jq
+      - go/1.22/stable
+    override-build: |
+      # CTR=echo is hacky way of passing docker check not required for build
+      make CTR=echo _bin/server/controller-linux-${CRAFT_PLATFORM}
+      cp _bin/server/controller-linux-${CRAFT_PLATFORM} ${CRAFT_PART_INSTALL}/controller-linux
+    prime:
+      - controller-linux

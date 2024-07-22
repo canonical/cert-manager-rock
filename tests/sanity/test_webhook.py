@@ -1,14 +1,21 @@
-import subprocess
-import os
+#
+# Copyright 2024 Canonical, Ltd.
+# See LICENSE file for licensing details
+#
+import pytest
+from k8s_test_harness.util import docker_util, env_util
+
+IMG_NAME = "cert-manager-webhook"
+IMG_PLATFORM = "amd64"
+
+EXP_HELPSTR = "Webhook component providing API validation"
 
 
-def test_sanity_webhook():
-    image = os.getenv("ROCK_CERT_MANAGER_WEBHOOK")
-    assert image is not None, "ROCK_CERT_MANAGER_WEBHOOK is not set"
-    docker_run = subprocess.run(
-        ["docker", "run", "--rm", "--entrypoint", "/webhook-linux", image, "--help"],
-        capture_output=True,
-        check=True,
-        text=True,
+@pytest.mark.parametrize("version", ("1.10.1", "1.12.2"))
+def test_sanity_webhook(version):
+    rock = env_util.get_build_meta_info_for_rock_version(
+        IMG_NAME, version, IMG_PLATFORM
     )
-    assert "Webhook component providing API validation" in docker_run.stdout
+
+    docker_run = docker_util.run_in_docker(rock.image, ["/webhook-linux", "--help"])
+    assert EXP_HELPSTR in docker_run.stdout
